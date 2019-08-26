@@ -39,8 +39,8 @@ ELEC3850\ Project.list \
 all: ELEC3850\ Project.elf secondary-outputs
 
 # Tool invocations
-ELEC3850\ Project.elf: $(OBJS) $(USER_OBJS) U:\ELEC3850\ELEC3850\ Project\STM32F407VGTX_FLASH.ld
-	arm-none-eabi-gcc -o "ELEC3850 Project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"U:\ELEC3850\ELEC3850 Project\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ELEC3850 Project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+ELEC3850\ Project.elf: $(OBJS) $(USER_OBJS) C:\Users\Gordon\STM32CubeIDE\workspace_1.0.2\ELEC3850\ Project\STM32F407VGTX_FLASH.ld
+	arm-none-eabi-gcc -o "ELEC3850 Project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Gordon\STM32CubeIDE\workspace_1.0.2\ELEC3850 Project\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ELEC3850 Project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

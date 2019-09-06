@@ -75,33 +75,144 @@ static void MX_TIM1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void driveForwards_pwm_setvalue(uint16_t value)
+/*
+ * pwm_setvalue(); sets pwm value for motor drive, produced by Gus
+ * This function gives full control for gate switching!!
+ *
+ * &htim4: address of timer 1
+ * 						"B diagonal of H-BRIDGE"
+ * &htim1: address of timer 2
+ * 						"A diagonal of H-BRIDGE"
+ * TIM_CHANNEL_1 : points to channel one of the timer
+ * 						"HIGH-SIDE of H-BRIDGE"
+ * TIM_CHANNEL_2 : points to channel two of the timer
+ * 						"LOW-SIDE of H-BRIDGE"
+*/
+void pwm_setvalue(int a, uint16_t high_a, uint16_t low_a, uint16_t high_b, uint16_t low_b)
 {
-	TIM_OC_InitTypeDef sConfigOC;
+	//Timer configuration setup
+
+	TIM_OC_InitTypeDef sConfigOC, sConfigOC1;
+
+	//Timer one requirements
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = value;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-	{
-		Error_Handler();
+
+	//Timer four requirements
+	sConfigOC1.OCMode = TIM_OCMODE_PWM1;
+	sConfigOC1.OCPolarity = TIM_OCPOLARITY_HIGH;
+	sConfigOC1.OCFastMode = TIM_OCFAST_DISABLE;
+	sConfigOC1.OCIdleState = TIM_OCIDLESTATE_RESET;
+	sConfigOC1.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+	sConfigOC1.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+
+	//Stop motors: turn on both low gates
+	switch(a){
+
+		case 0:
+
+			sConfigOC.Pulse = 0;
+			sConfigOC1.Pulse = 0;
+			//Turn off high side
+			if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_1) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+			//Turn on low side
+			sConfigOC.Pulse = low_a;
+			sConfigOC1.Pulse = low_b;
+			if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_2) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+
+		break;
+
+		//Go forwards: switch off low_a and high_b and turn on high_a and low_b
+
+		case 1:
+
+			sConfigOC1.Pulse = 0;
+			//switch off low_b and high_b
+			if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_1) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_2) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+
+			//turn on low_a - allow motor to discharge
+			sConfigOC.Pulse = low_a;
+			if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+
+			//turn on high_a - produce current through motor
+			sConfigOC.Pulse = high_a;
+			if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+
+		break;
+
+	//Go backwards: switch off high_a and low_b and turn on low_a and high_b
+		case 2:
+
+			sConfigOC.Pulse = 0;
+			//switch off high_a and low_a
+			if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+			HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+
+			//turn on low_b - allow motor to discharge
+			sConfigOC1.Pulse = low_b;
+			if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_2) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+
+			//turn on high_b - produce current through motor
+			sConfigOC1.Pulse = high_b;
+			if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_1) != HAL_OK)
+			{
+				Error_Handler();
+			}
+			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+		break;
 	}
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 }
 
-void driveBackwards_pwm_setvalue(uint16_t value)
-{
-	TIM_OC_InitTypeDef sConfigOC;
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = value;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-	{
-		Error_Handler();
-	}
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-}
 
 void steer_pwm_setvalue(uint16_t value)
 {
@@ -130,64 +241,37 @@ void steer_right_PWM(){
 	steer_pwm_setvalue(133);
 }
 
-//Driving Functions
-void drive_backward_PWM(uint16_t *pwm_value, int *step)
-{
-	HAL_GPIO_WritePin(BPIN_GPIO_Port, BPIN_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(APIN_GPIO_Port, APIN_Pin, GPIO_PIN_SET);
+void drive_forward(uint16_t pwm){
 
-	//Car go forward
-	if(pwm_value[0] == 0)
-	{
-		step[0] = 25;
+	int i;
+
+	for(i = 0; i<(int)pwm; i++){
+
+		//pwm_setvalue(case, high_a, low_a, high_b, low_b);
+		pwm_setvalue(1, i, 90, 0, 0);
+
 	}
-	//Car go backward
-	if(pwm_value[0] == 2000)
-	{
-		step[0] = -25;
-	}
-	pwm_value[0] += step[0];
 
-	uint8_t Msg[] = "shieeet\r\n";
-	sprintf(Msg, "%d\r\n", pwm_value[0]);
-	CDC_Transmit_FS(Msg, strlen(Msg));
-	HAL_Delay(10);
-
-	driveBackwards_pwm_setvalue(pwm_value[0]);
 }
 
-void drive_forward_PWM(uint16_t *pwm_value, int *step)
-{
-	HAL_GPIO_WritePin(BPIN_GPIO_Port, BPIN_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(APIN_GPIO_Port, APIN_Pin, GPIO_PIN_SET);
+void drive_backward(uint16_t pwm){
 
-	//Car go forward
-	if(pwm_value[0] == 0)
-	{
-		step[0] = 25;
-	}
-	//Car go backward
-	if(pwm_value[0] == 2000)
-	{
-		step[0] = -25;
-	}
-	pwm_value[0] += step[0];
+	int i;
 
-	uint8_t Msg[] = "shieeet\r\n";
-	sprintf(Msg, "%d\r\n", pwm_value[0]);
-	CDC_Transmit_FS(Msg, strlen(Msg));
-	HAL_Delay(10);
+	for(i = 0; i<(int)pwm; i++){
 
-	driveForwards_pwm_setvalue(pwm_value[0]);
+		//pwm_setvalue(case, high_a, low_a, high_b, low_b);
+		pwm_setvalue(2, 0, 0, i, 90);
 
-	if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
-	{
-		HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_SET);
 	}
-	else
-	{
-		HAL_GPIO_WritePin(LD6_GPIO_Port, LD6_Pin, GPIO_PIN_RESET);
-	}
+
+}
+
+void stop(uint16_t pwm){
+
+	//pwm_setvalue(case, high_a, low_a, high_b, low_b);
+	pwm_setvalue(0, 0, pwm, 0, pwm);
+
 }
 
 
@@ -231,36 +315,30 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
 	HAL_TIM_Base_Start_IT(&htim3);
-	uint16_t pwm_value[1] = {0};
-	int step[1] = {25};
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
 	while (1)
 	{
 
+		stop(30);
+
+		drive_forward(30);
+
+		stop(30);
+
+		drive_backward(30);
+
+	}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-		drive_forward_PWM(pwm_value, step);
 
-		//drive_backward_PWM(pwm_value, step);
-
-
-		/*steer_left_PWM();
-		HAL_Delay(2000);
-		steer_straight_PWM();
-		HAL_Delay(2000);
-		steer_right_PWM();
-		HAL_Delay(2000);*/
-
-
-  }
   /* USER CODE END 3 */
 }
 
@@ -441,9 +519,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 1080;
+  htim1.Init.Prescaler = 336-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 2000-1;
+  htim1.Init.Period = 100-1;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -467,13 +545,18 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 30;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.Pulse = 90;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -510,6 +593,7 @@ static void MX_TIM2_Init(void)
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
 
   /* USER CODE BEGIN TIM2_Init 1 */
 
@@ -533,6 +617,10 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
@@ -544,6 +632,14 @@ static void MX_TIM2_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -619,9 +715,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 1080-1;
+  htim4.Init.Prescaler = 168-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 2000-1;
+  htim4.Init.Period = 100-1;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -644,10 +740,15 @@ static void MX_TIM4_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 2399;
+  sConfigOC.Pulse = 30;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.Pulse = 90;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }

@@ -25,7 +25,3 @@ while 1:
     #print("Write counter: {}".format(counter))
     x=ser.readline()
     print(x)
-    
-     
-    
-

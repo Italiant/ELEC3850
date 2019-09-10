@@ -235,6 +235,7 @@ void steer_left_PWM(){
 
 void steer_straight_PWM(){
 	steer_pwm_setvalue(119);
+	HAL_Delay(1);
 }
 
 void steer_right_PWM(){
@@ -316,22 +317,58 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim3);
+	uint8_t Reverse = 0;
+	uint8_t Stop = 0;
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	int i = 235;
+	steer_pwm_setvalue(i);
 
 	while (1)
 	{
+		//left = 200
+		//straight = 225
+		//
+		//steer_straight_PWM();
 
-		stop(30);
+
+		drive_forward(40);
+		//drive_backward(90);
+		//HAL_Delay(1);
+
+		Stop = HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin);
+		//int k = 0;
+		while(Stop == 1)
+		{
+			//if(!k){
+				//steer_pwm_setvalue(200);
+			//}
+
+			stop(100);
+			Reverse = HAL_GPIO_ReadPin(Reverse_GPIO_Port, Reverse_Pin);
+			while(Reverse == 1)
+			{
+				Stop = 0;
+				drive_backward(50);
+				Stop = HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin);
+				while(Stop == 1)
+				{
+					stop(100);
+				}
+			}
+			//k = 1;
+		}
+
+		/*stop(30);
 
 		drive_forward(30);
 
 		stop(30);
 
-		drive_backward(30);
+		drive_backward(30);*/
 
 	}
     /* USER CODE END WHILE */
@@ -519,7 +556,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 336-1;
+  htim1.Init.Prescaler = 168-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 100-1;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -593,13 +630,12 @@ static void MX_TIM2_Init(void)
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
-  TIM_IC_InitTypeDef sConfigIC = {0};
 
   /* USER CODE BEGIN TIM2_Init 1 */
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 1080;
+  htim2.Init.Prescaler = 540;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 2000-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -617,10 +653,6 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
@@ -632,14 +664,6 @@ static void MX_TIM2_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -842,6 +866,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(OTG_FS_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Reverse_Pin Stop_Pin */
+  GPIO_InitStruct.Pin = Reverse_Pin|Stop_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : MEMS_INT2_Pin */
   GPIO_InitStruct.Pin = MEMS_INT2_Pin;

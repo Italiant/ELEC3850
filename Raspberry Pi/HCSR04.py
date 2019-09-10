@@ -19,7 +19,6 @@ def ultrasonic():
     while GPIO.input(Echo) == 0:
         pulse_start = time.time()
 
-
     while GPIO.input(Echo) == 1:
         pulse_end = time.time()
 

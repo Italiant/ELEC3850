@@ -259,7 +259,7 @@ void drive_backward(uint16_t pwm)
 {
 	//int i;
 	//for(i = 0; i<(int)pwm; i++)
-	{
+	//{
 		//pwm_setvalue(case, high_a, low_a, high_b, low_b);
 		pwm_setvalue(2, 0, 0, pwm, 90);
 	//}

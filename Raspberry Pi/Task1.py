@@ -1,4 +1,5 @@
 import HCSR04
+from HCSR04 import C
 from math import pi
 import RPi.GPIO as GPIO
 import time
@@ -6,7 +7,7 @@ import time
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-STOP = 26
+STOP = 19
 REVERSE = 21
 
 GPIO.setup(STOP, GPIO.OUT)
@@ -24,9 +25,8 @@ GPIO.add_event_detect(16, GPIO.RISING)
 def callback(self):
     global N, starttime, Distance, C
     N = N + 1
-    print("N: {}".format(N))
      
-    if(N == 5):
+    if(N == 3):
         stoptime = time.time()
         difference = stoptime - starttime
         Speed = 6*pi/5 * N / difference
@@ -37,8 +37,8 @@ def callback(self):
             
         starttime = time.time()
         N = 0
-        print("Total Distance: {} cm".format(Distance))
-        print("Speed: {} cm/s".format(Speed))
+        #print("Total Distance: {} cm".format(Distance))
+        #print("Speed: {} cm/s".format(Speed))
 
 GPIO.add_event_callback(16, callback)
 
@@ -53,6 +53,5 @@ while(1):
         while(C == 1):
             GPIO.output(REVERSE, True)      
             GPIO.output(STOP, False)
-            while(Distance <= 0 or Distance < 5):
+            while(Distance < 5):
                 GPIO.output(STOP, True)
-    time.sleep(0.05)

@@ -13,6 +13,7 @@ GPIO.add_event_detect(16, GPIO.RISING)
 def callback(self):
     global N, starttime
     N = N + 1
+    print("N: {}".format(N))
      
     if(N == 10):
         stoptime = time.time()
@@ -21,5 +22,5 @@ def callback(self):
         starttime = time.time()
         N = 0
         print("Speed: {} cm/s".format(Speed))
-            
+           
 GPIO.add_event_callback(16, callback)

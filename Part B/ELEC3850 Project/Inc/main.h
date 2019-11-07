@@ -142,17 +142,17 @@ void Error_Handler(void);
 #define NOM_ADC 2
 
 //Current defines
-#define kp 2	//0.4675          /**< Proportional gain constant */
-#define ki 0.1	//7.335			 /**< Integral gain constant */
+#define kp 3 	//	     0.4675     /**< Proportional gain constant */
+#define ki 0.1	//0.1	7.335			 /**< Integral gain constant */
 #define max 10          /**< Maximum value */
 #define min -10            /**< Minimum value */
 //Velocity defines
 #define VEL 100		//Velocity Input
 #define LoopFreq 10 	//Frequency of outer loop (once every 100 inner loops)
 #define MAX_VEL 2000
-#define MAX_PWM 60
-#define kp2 0.08
-#define ki2 0.001
+#define MAX_PWM 30
+#define kp2 1.5//	0.3 with no PI for off Supply
+#define ki2 0	//0.001
 #define kp3 1
 #define Loop2 80
 

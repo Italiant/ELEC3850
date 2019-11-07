@@ -26,21 +26,21 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-test.elf \
+ELEC3850\ Project.elf \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-test.list \
+ELEC3850\ Project.list \
 
 
 # All Target
-all: test.elf secondary-outputs
+all: ELEC3850\ Project.elf secondary-outputs
 
 # Tool invocations
-test.elf: $(OBJS) $(USER_OBJS) U:\ELEC3850\Project\test\STM32F407VGTX_FLASH.ld
-	arm-none-eabi-gcc -o "test.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"U:\ELEC3850\Project\test\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="test.map" -Wl,--gc-sections -static -u_printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+ELEC3850\ Project.elf: $(OBJS) $(USER_OBJS) U:\ELEC3850\Project\ELEC3850\ Project\STM32F407VGTX_FLASH.ld
+	arm-none-eabi-gcc -o "ELEC3850 Project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"U:\ELEC3850\Project\ELEC3850 Project\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ELEC3850 Project.map" -Wl,--gc-sections -static -u_printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -49,8 +49,8 @@ default.size.stdout: $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-test.list: $(EXECUTABLES)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "test.list"
+ELEC3850\ Project.list: $(EXECUTABLES)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "ELEC3850 Project.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 

@@ -192,7 +192,7 @@ double ultrasonic2(void);
 void initalise_LSM9DS1(void);	// This function configures and sets the registers inside the IMU
 
 void acceleration_get_raw(void);
-void acceleration_convert_values(void);
+double acceleration_convert_values(void);
 
 void angle_get_raw(void);
 void angle_convert_values(void);
@@ -302,6 +302,8 @@ int main(void)
 	double dist2;
 	int k = 0;
 	int d = 1;
+	double accel;
+	double aref;
 
 	//steer_right();
 	//steer_straight();
@@ -337,16 +339,36 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+		/*Hill Hold*/
+
 	while(0)
 	{
-		acceleration_get_raw();
-		acceleration_convert_values();
-		HAL_Delay(500);
+		for(int ii = 0; ii < 5; ii++)
+		{
+			acceleration_get_raw();
+			accel += acceleration_convert_values();
+		}
+		accel = accel/5;
+
+		while(1)
+		{
+			if (timcount == LoopFreq){
+			acceleration_get_raw();
+			aref = acceleration_convert_values();
+			Iset = vel_control(0.025, aref , pwm);
+			timcount = 0;
+			}
+			current = (double)current*3300/4096*1/140;
+			pwm = pi_control(Iset, current, pwm);
+			pwm_setvalue(1, pwm);
+			timcount++;
+			printf("PWM: %d\n", pwm);
+		}
 	}
 
 	/*Reverse Parallel Park*/
 
-	while(1)
+	while(0)
 	{
 	for (int z = 0; z < 5; z++)
 	{
@@ -1316,7 +1338,7 @@ void acceleration_get_raw(void)
 /************************************************
  * Function to convert the raw values
  ***********************************************/
-void acceleration_convert_values(void)
+double acceleration_convert_values(void)
 {
 //	int i;
 //	for (i = 0; i < 6; i++)
@@ -1335,14 +1357,15 @@ void acceleration_convert_values(void)
 
 	//Convert to unit of g
 
-	Xaccel = (float)ax*0.122;
-	Yaccel = (float)ay*0.122;
-	Zaccel = (float)az*0.122;
+	Xaccel = (float)ax*(0.000122)*9.8;
+	Yaccel = (float)ay*(0.000122)*9.8;
+	Zaccel = (float)az*(0.000122)*9.8;
 
 
 
-	printf("Xaccel = %0.2fmg Yaccel = %0.2fmg Zaccel = %0.2fmg\n", Xaccel, Yaccel, Zaccel);
+	printf("Xaccel = %0.3fm/s/s Yaccel = %0.3fm/s/s Zaccel = %0.3fm/s/s \n", Xaccel, Yaccel, Zaccel);
 	fflush(stdout);
+	return(Yaccel);
 
 }
 

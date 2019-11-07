@@ -323,7 +323,6 @@ int main(void)
 			loop = -1;
 		}
 
-
 		if(c == '\r')
 		{
 			inp[loop] = '\0';
